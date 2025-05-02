@@ -11,4 +11,5 @@
     <string name="permission_post_notifications_message">To inform you when new music is saved, the application needs to display notifications.</string>
     <string name="permission_post_notifications_button_grant">Grant</string>
     <string name="permission_post_notifications_button_deny">Deny</string>
+    <string name="error_opening_link">Unable to open the link. Is Tidal installed?</string>
 </resources>
