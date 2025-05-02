@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">My Stream Logs</string>
+    <string name="notification_listener_service_label">Stream History Listener</string>
+    <string name="history_empty">No results found or history is empty.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="enable_permission">The application needs access to notifications to work. Please enable access in the settings.</string>
+    <string name="notification_channel_name">Track History</string>
+    <string name="notification_channel_description">Notifications when a new track is added to the history</string>
+    <string name="notification_title">Music Saved</string>
+    <string name="permission_post_notifications_title">Permission Required</string>
+    <string name="permission_post_notifications_message">To inform you when new music is saved, the application needs to display notifications.</string>
+    <string name="permission_post_notifications_button_grant">Grant</string>
+    <string name="permission_post_notifications_button_deny">Deny</string>
+</resources>
