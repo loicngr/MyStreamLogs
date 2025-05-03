@@ -12,4 +12,15 @@
     <string name="permission_post_notifications_button_grant">Grant</string>
     <string name="permission_post_notifications_button_deny">Deny</string>
     <string name="error_opening_link">Unable to open the link. Is Tidal installed?</string>
+
+    <string name="most_streamed_title">Most Streamed</string>
+    <string name="most_streamed_empty">No streaming data yet. Listen to some music!</string>
+    <string name="bottom_nav_history">History</string>
+    <string name="bottom_nav_most_streamed">Most Streamed</string>
+    <string name="search_hint">Search History…</string>
+
+    <plurals name="stream_count_text">
+        <item quantity="one">%d stream</item>
+        <item quantity="other">%d streams</item>
+    </plurals>
 </resources>

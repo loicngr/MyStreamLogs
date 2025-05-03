@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   android:layout_width="match_parent"
+                                                   android:layout_height="wrap_content"
+                                                   android:paddingStart="16dp"
+                                                   android:paddingEnd="16dp"
+                                                   android:paddingTop="8dp"
+                                                   android:paddingBottom="8dp"
+                                                   android:background="?android:attr/selectableItemBackground">
+
+    <!-- Rank Number -->
+    <TextView
+            android:id="@+id/rankTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintWidth_min="24dp"
+            android:gravity="center_horizontal"
+            tools:text="1"/>
+
+    <!-- Track Title -->
+    <TextView
+            android:id="@+id/trackTitleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintStart_toEndOf="@id/rankTextView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/streamCountTextView"
+            android:layout_marginEnd="8dp"
+            tools:text="Bohemian Rhapsody" />
+
+    <!-- Artist Name -->
+    <TextView
+            android:id="@+id/artistNameTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintStart_toStartOf="@id/trackTitleTextView"
+            app:layout_constraintTop_toBottomOf="@id/trackTitleTextView"
+            app:layout_constraintEnd_toEndOf="@id/trackTitleTextView"
+            tools:text="Queen" />
+
+    <!-- Stream Count -->
+    <TextView
+            android:id="@+id/streamCountTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="125 streams" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
