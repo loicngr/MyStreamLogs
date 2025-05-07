@@ -157,6 +157,11 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     false
                 }
+                R.id.navigation_settings -> {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    false
+                }
                 else -> false
             }
         }
@@ -253,7 +258,9 @@ class MainActivity : AppCompatActivity() {
                 .setTitle(getString(R.string.permission_post_notifications_title))
                 .setMessage(getString(R.string.permission_post_notifications_message))
                 .setPositiveButton(getString(R.string.permission_post_notifications_button_grant)) { _, _ ->
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                 }
                 .setNegativeButton(getString(R.string.permission_post_notifications_button_deny), null)
                 .show()

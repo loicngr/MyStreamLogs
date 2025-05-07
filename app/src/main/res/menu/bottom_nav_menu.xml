@@ -9,4 +9,9 @@
             android:id="@+id/navigation_most_streamed"
             android:icon="@drawable/ic_most_streamed"
             android:title="@string/bottom_nav_most_streamed" />
+
+    <item
+            android:id="@+id/navigation_settings"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="@string/bottom_nav_settings" />
 </menu>
