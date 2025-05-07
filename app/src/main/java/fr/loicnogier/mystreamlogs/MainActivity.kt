@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 class MainActivity : AppCompatActivity() {
 
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         observeHistory()
         requestPostNotificationsPermission()
         checkNotificationListenerPermission()
+        requestBatteryOptimizationPermission()
     }
 
 
@@ -257,6 +259,26 @@ class MainActivity : AppCompatActivity() {
                 }
                 .setNegativeButton(getString(R.string.permission_post_notifications_button_deny), null)
                 .show()
+        }
+    }
+
+    private fun requestBatteryOptimizationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return
+        }
+
+        val powerManager = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            val intent = Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intent.data = "package:$packageName".toUri()
+            try {
+                startActivity(intent)
+                Log.d("MainActivity", "Requesting battery optimization exception")
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Could not open battery optimization settings", e)
+            }
+        } else {
+            Log.d("MainActivity", "Battery optimization already disabled for this app")
         }
     }
 }
