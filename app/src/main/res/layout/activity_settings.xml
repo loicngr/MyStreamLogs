@@ -10,14 +10,15 @@
     <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            android:theme="@style/ThemeOverlay.Material3.ActionBar"
             android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="@string/settings_title" />
+                app:title="@string/settings_title"
+                app:popupTheme="@style/ThemeOverlay.Material3.Light" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -27,15 +28,88 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:padding="16dp">
 
-        <Button
-                android:id="@+id/deleteDataButton"
+        <com.google.android.material.card.MaterialCardView
+                android:id="@+id/settingsCardView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_delete_data_button"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="24dp"/>
+                android:layout_marginTop="24dp"
+                app:cardElevation="4dp"
+                app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                <!-- Language section at the top -->
+                <TextView
+                        android:id="@+id/languageLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_language_label"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="16dp"/>
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/languageToggleGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="24dp">
+
+                    <com.google.android.material.button.MaterialButton
+                            android:id="@+id/systemLanguageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_language_system"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                    <com.google.android.material.button.MaterialButton
+                            android:id="@+id/englishLanguageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_language_english"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                    <com.google.android.material.button.MaterialButton
+                            android:id="@+id/frenchLanguageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_language_french"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <!-- Divider between language and buttons -->
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider"
+                        android:layout_marginBottom="24dp"/>
+
+                <!-- Buttons below -->
+                <com.google.android.material.button.MaterialButton
+                        android:id="@+id/deleteDataButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_delete_data_button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                <com.google.android.material.button.MaterialButton
+                        android:id="@+id/checkPermissionsButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_check_permissions_button"
+                        android:layout_marginTop="8dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

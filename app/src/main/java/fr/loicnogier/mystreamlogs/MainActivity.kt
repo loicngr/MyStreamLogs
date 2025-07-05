@@ -2,6 +2,7 @@ package fr.loicnogier.mystreamlogs
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,6 +11,8 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -30,8 +33,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,8 +49,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var emptyHistoryText: TextView
     private lateinit var searchView: SearchView
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var yearFilterLayout: TextInputLayout
+    private lateinit var yearFilterAutoComplete: AutoCompleteTextView
+    private lateinit var monthFilterLayout: TextInputLayout
+    private lateinit var monthFilterAutoComplete: AutoCompleteTextView
 
     private lateinit var historyContentGroup: List<View>
+
+    override fun attachBaseContext(newBase: Context) {
+        // Apply saved language configuration
+        super.attachBaseContext(SettingsActivity.applyLanguage(newBase))
+    }
 
 
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -73,9 +89,13 @@ class MainActivity : AppCompatActivity() {
         emptyHistoryText = findViewById(R.id.emptyHistoryText)
         searchView = findViewById(R.id.searchView)
         bottomNavigationView = findViewById(R.id.bottomNavigation)
+        yearFilterLayout = findViewById(R.id.yearFilterLayout)
+        yearFilterAutoComplete = findViewById(R.id.yearFilterAutoComplete)
+        monthFilterLayout = findViewById(R.id.monthFilterLayout)
+        monthFilterAutoComplete = findViewById(R.id.monthFilterAutoComplete)
         val mainContentLayout = findViewById<View>(R.id.main)
 
-        historyContentGroup = listOf(recyclerView, searchView, emptyHistoryText)
+        historyContentGroup = listOf(recyclerView, searchView, emptyHistoryText, yearFilterLayout, monthFilterLayout)
 
         ViewCompat.setOnApplyWindowInsetsListener(mainContentLayout) { view, insets ->
             val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -99,6 +119,7 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         setupPermissionButton()
         setupSearchView()
+        setupFilters()
         setupBottomNavigation()
 
         observeHistory()
@@ -116,7 +137,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        historyAdapter = HistoryAdapter()
+        historyAdapter = HistoryAdapter { id ->
+            historyViewModel.deleteTrack(id)
+        }
         recyclerView.adapter = historyAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
@@ -144,6 +167,102 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         })
+    }
+
+    private fun setupFilters() {
+        setupYearFilter()
+        setupMonthFilter()
+    }
+
+    private fun setupYearFilter() {
+        // Generate a list of years (from 2020 to current year)
+        val years = generateYearsList()
+
+        // Add an "All" option at the beginning
+        val allYearsOption = getString(R.string.filter_all_years)
+        val adapter = ArrayAdapter(
+            this, 
+            android.R.layout.simple_dropdown_item_1line, 
+            listOf(allYearsOption) + years
+        )
+        yearFilterAutoComplete.setAdapter(adapter)
+
+        // Set the default selection to "All"
+        yearFilterAutoComplete.setText(allYearsOption, false)
+
+        // Handle selection
+        yearFilterAutoComplete.setOnItemClickListener { _, _, position, _ ->
+            if (position == 0) {
+                // "All" option selected
+                historyViewModel.setSelectedYear(null)
+            } else {
+                // A specific year selected
+                val selectedYear = years[position - 1] // -1 because of the "All" option
+                historyViewModel.setSelectedYear(selectedYear)
+            }
+        }
+    }
+
+    private fun setupMonthFilter() {
+        // Generate a list of all 12 months
+        val months = generateMonthsList()
+
+        // Add an "All" option at the beginning
+        val allMonthsOption = getString(R.string.filter_all_months)
+        val adapter = ArrayAdapter(
+            this, 
+            android.R.layout.simple_dropdown_item_1line, 
+            listOf(allMonthsOption) + months.map { it.second }
+        )
+        monthFilterAutoComplete.setAdapter(adapter)
+
+        // Set the default selection to "All"
+        monthFilterAutoComplete.setText(allMonthsOption, false)
+
+        // Handle selection
+        monthFilterAutoComplete.setOnItemClickListener { _, _, position, _ ->
+            if (position == 0) {
+                // "All" option selected
+                historyViewModel.setSelectedMonth(null)
+            } else {
+                // A specific month selected
+                val selectedMonth = months[position - 1].first // -1 because of the "All" option
+                historyViewModel.setSelectedMonth(selectedMonth)
+            }
+        }
+    }
+
+    private fun generateYearsList(): List<String> {
+        val years = mutableListOf<String>()
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+        // Generate years from 2020 to current year
+        for (year in 2020..currentYear) {
+            years.add(year.toString())
+        }
+
+        return years.reversed() // Most recent years first
+    }
+
+    private fun generateMonthsList(): List<Pair<String, String>> {
+        val months = mutableListOf<Pair<String, String>>()
+        val monthFormat = SimpleDateFormat("MM", Locale.getDefault())
+        val displayFormat = SimpleDateFormat("MMMM", Locale.getDefault())
+        val calendar = Calendar.getInstance()
+
+        // Set to January
+        calendar.set(Calendar.MONTH, Calendar.JANUARY)
+
+        // Generate all 12 months
+        for (i in 0 until 12) {
+            val date = calendar.time
+            val monthKey = monthFormat.format(date) // Format as "MM" for the query
+            val monthDisplay = displayFormat.format(date) // Format as "Month" for display
+            months.add(Pair(monthKey, monthDisplay))
+            calendar.add(Calendar.MONTH, 1)
+        }
+
+        return months
     }
 
     private fun setupBottomNavigation() {
@@ -181,10 +300,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkNotificationListenerPermission() {
         val enabledListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val componentName = ComponentName(this, NotificationListener::class.java).flattenToString()
+        val componentName = ComponentName(this, MediaPlayerService::class.java).flattenToString()
         val isEnabled = enabledListeners != null && enabledListeners.contains(componentName)
 
-        Log.d("MainActivity", "Notification Listener Enabled: $isEnabled")
+        Log.d("MainActivity", "Media Player Service Enabled: $isEnabled")
 
         permissionGroup.isVisible = !isEnabled
         showHistoryView(isEnabled)

@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class MostStreamedAdapter : ListAdapter<
+class MostStreamedAdapter(
+    private val onDeleteClick: (trackTitle: String, artistName: String) -> Unit
+) : ListAdapter<
         TrackStreamCount,
         MostStreamedAdapter.MostStreamedViewHolder
         >(MostStreamedDiffCallback()) {
@@ -16,7 +18,7 @@ class MostStreamedAdapter : ListAdapter<
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MostStreamedViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.list_item_most_streamed, parent, false)
-        return MostStreamedViewHolder(view)
+        return MostStreamedViewHolder(view, onDeleteClick)
     }
 
     override fun onBindViewHolder(holder: MostStreamedViewHolder, position: Int) {
@@ -24,11 +26,15 @@ class MostStreamedAdapter : ListAdapter<
         holder.bind(trackCount, position + 1)
     }
 
-    class MostStreamedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class MostStreamedViewHolder(
+        itemView: View,
+        private val onDeleteClick: (trackTitle: String, artistName: String) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
         private val rankTextView: TextView = itemView.findViewById(R.id.rankTextView)
         private val titleTextView: TextView = itemView.findViewById(R.id.trackTitleTextView)
         private val artistTextView: TextView = itemView.findViewById(R.id.artistNameTextView)
         private val countTextView: TextView = itemView.findViewById(R.id.streamCountTextView)
+        private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
         private var currentItem: TrackStreamCount? = null
         private val logTag = "MostStreamedAdapter"
 
@@ -40,6 +46,12 @@ class MostStreamedAdapter : ListAdapter<
                         trackTitle = item.trackTitle,
                         logTag = logTag
                     )
+                }
+            }
+
+            deleteButton.setOnClickListener {
+                currentItem?.let { item ->
+                    onDeleteClick(item.trackTitle, item.artistName)
                 }
             }
         }
