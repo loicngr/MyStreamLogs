@@ -300,10 +300,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkNotificationListenerPermission() {
         val enabledListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val componentName = ComponentName(this, NotificationListener::class.java).flattenToString()
+        val componentName = ComponentName(this, MediaPlayerService::class.java).flattenToString()
         val isEnabled = enabledListeners != null && enabledListeners.contains(componentName)
 
-        Log.d("MainActivity", "Notification Listener Enabled: $isEnabled")
+        Log.d("MainActivity", "Media Player Service Enabled: $isEnabled")
 
         permissionGroup.isVisible = !isEnabled
         showHistoryView(isEnabled)

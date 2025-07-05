@@ -218,10 +218,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun checkNotificationListenerPermission() {
         val enabledListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        val componentName = ComponentName(this, NotificationListener::class.java).flattenToString()
+        val componentName = ComponentName(this, MediaPlayerService::class.java).flattenToString()
         val isEnabled = enabledListeners != null && enabledListeners.contains(componentName)
 
-        Log.d("SettingsActivity", "Notification Listener Enabled: $isEnabled")
+        Log.d("SettingsActivity", "Media Player Service Enabled: $isEnabled")
 
         if (!isEnabled) {
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
