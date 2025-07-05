@@ -24,8 +24,21 @@ interface TrackHistoryDao {
     @Query("SELECT * FROM track_history ORDER BY timestamp DESC")
     fun getAllHistory(): Flow<List<TrackHistory>>
 
+    @Query("""
+        SELECT * FROM track_history 
+        WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        ORDER BY timestamp DESC
+    """)
+    fun getHistoryByMonth(month: String): Flow<List<TrackHistory>>
+
     @Query("DELETE FROM track_history")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM track_history WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM track_history WHERE track_title = :trackTitle AND artist_name = :artistName")
+    suspend fun deleteByTrackAndArtist(trackTitle: String, artistName: String)
 
     @Query("""
         SELECT * FROM track_history
@@ -36,6 +49,16 @@ interface TrackHistoryDao {
     """)
     fun searchHistory(query: String): Flow<List<TrackHistory>>
 
+    @Query("""
+        SELECT * FROM track_history
+        WHERE (track_title LIKE '%' || :query || '%'
+           OR artist_name LIKE '%' || :query || '%'
+           OR album_name LIKE '%' || :query || '%')
+        AND strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        ORDER BY timestamp DESC
+    """)
+    fun searchHistoryByMonth(query: String, month: String): Flow<List<TrackHistory>>
+
     // New query to get most streamed tracks
     // Groups tracks by title and artist, counts them, and orders by count descending
     @Query("""
@@ -45,4 +68,13 @@ interface TrackHistoryDao {
         ORDER BY stream_count DESC
     """)
     fun getMostStreamedTracks(): Flow<List<TrackStreamCount>> // Return Flow of the new data class
+
+    @Query("""
+        SELECT track_title, artist_name, COUNT(*) as stream_count
+        FROM track_history
+        WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        GROUP BY track_title, artist_name
+        ORDER BY stream_count DESC
+    """)
+    fun getMostStreamedTracksByMonth(month: String): Flow<List<TrackStreamCount>>
 }

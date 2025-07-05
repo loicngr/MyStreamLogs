@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -20,6 +21,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class NotificationListener : NotificationListenerService() {
+
+    override fun attachBaseContext(base: Context) {
+        // Apply saved language configuration
+        super.attachBaseContext(SettingsActivity.applyLanguage(base))
+    }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
@@ -38,7 +44,7 @@ class NotificationListener : NotificationListenerService() {
 
      override fun onListenerConnected() {
         super.onListenerConnected()
-        Log.i("NotificationListener", "Service connecté")
+        Log.i("NotificationListener", "Service connected")
         lastTrackTitle = null
         lastArtistName = null
     }
@@ -59,12 +65,12 @@ class NotificationListener : NotificationListenerService() {
         val album = extras.getString(Notification.EXTRA_SUB_TEXT)?.trim()
         val albumArtUrl: String? = null
 
-        Log.d("NotificationListener", "Notification reçue: Titre='$title', Artiste='$artist', Album='$album'")
+        Log.d("NotificationListener", "Notification received: Title='$title', Artist='$artist', Album='$album'")
 
         if (!title.isNullOrBlank() && !artist.isNullOrBlank() &&
             (title != lastTrackTitle || artist != lastArtistName)) {
 
-            Log.i("NotificationListener", "Nouvelle piste détectée : '$title' par '$artist'")
+            Log.i("NotificationListener", "New track detected: '$title' by '$artist'")
 
             lastTrackTitle = title
             lastArtistName = artist
@@ -79,14 +85,14 @@ class NotificationListener : NotificationListenerService() {
             serviceScope.launch {
                 try {
                     trackHistoryDao.insert(trackHistory)
-                    Log.i("NotificationListener", "Piste enregistrée dans la base de données.")
+                    Log.i("NotificationListener", "Track saved in the database.")
                     showTrackSavedNotification(title, artist)
                 } catch (e: Exception) {
-                    Log.e("NotificationListener", "Erreur lors de l'insertion dans la DB", e)
+                    Log.e("NotificationListener", "Error during insertion in the DB", e)
                 }
             }
         } else {
-             Log.d("NotificationListener", "Notification ignorée (pas de titre/artiste ou identique à la précédente).")
+             Log.d("NotificationListener", "Notification ignored (no title/artist or identical to the previous one).")
         }
     }
 
@@ -101,14 +107,14 @@ class NotificationListener : NotificationListenerService() {
             val notificationManager: NotificationManager =
                 getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-            Log.d("NotificationListener", "Canal de notification créé.")
+            Log.d("NotificationListener", "Notification channel created.")
         }
     }
 
     private fun showTrackSavedNotification(title: String, artist: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
              if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                 Log.w("NotificationListener", "Permission POST_NOTIFICATIONS non accordée.")
+                 Log.w("NotificationListener", "Permission POST_NOTIFICATIONS not granted.")
                  return
              }
         }
@@ -134,7 +140,7 @@ class NotificationListener : NotificationListenerService() {
 
         with(NotificationManagerCompat.from(this)) {
             notify(NOTIFICATION_ID, builder.build())
-            Log.d("NotificationListener", "Notification affichée pour '$title' avec PendingIntent.")
+            Log.d("NotificationListener", "Notification displayed for '$title' with PendingIntent.")
         }
     }
 

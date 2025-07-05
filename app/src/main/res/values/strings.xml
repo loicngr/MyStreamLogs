@@ -28,6 +28,22 @@
     <string name="settings_delete_confirmation_dialog_cancel">Cancel</string>
     <string name="bottom_nav_settings">Settings</string>
     <string name="data_deleted_toast">All music data has been deleted.</string>
+    <string name="delete">Delete</string>
+
+    <!-- Permission Check Strings -->
+    <string name="settings_check_permissions_button">Check Permissions</string>
+    <string name="permissions_check_title">Permissions Check</string>
+    <string name="permissions_check_message">The app needs the following permissions to work properly:\n- Notification Listener\n- Notifications\n- Battery Optimization</string>
+
+    <!-- Language Settings -->
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_french">Français</string>
+    <string name="settings_language_system">System Default</string>
+
+    <!-- Filter Strings -->
+    <string name="filter_all_years">All years</string>
+    <string name="filter_all_months">All months</string>
 
     <plurals name="stream_count_text">
         <item quantity="one">%d stream</item>

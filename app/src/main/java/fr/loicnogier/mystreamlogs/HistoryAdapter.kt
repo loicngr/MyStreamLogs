@@ -10,11 +10,13 @@ import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HistoryAdapter : ListAdapter<TrackHistory, HistoryAdapter.HistoryViewHolder>(HistoryDiffCallback()) {
+class HistoryAdapter(
+    private val onDeleteClick: (id: Long) -> Unit
+) : ListAdapter<TrackHistory, HistoryAdapter.HistoryViewHolder>(HistoryDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.list_item_history, parent, false)
-        return HistoryViewHolder(view)
+        return HistoryViewHolder(view, onDeleteClick)
     }
 
     override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
@@ -22,12 +24,16 @@ class HistoryAdapter : ListAdapter<TrackHistory, HistoryAdapter.HistoryViewHolde
         holder.bind(track)
     }
 
-    class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class HistoryViewHolder(
+        itemView: View,
+        private val onDeleteClick: (id: Long) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
         // private val albumArtImageView: ImageView = itemView.findViewById(R.id.albumArtImageView)
         private val titleTextView: TextView = itemView.findViewById(R.id.trackTitleTextView)
         private val artistTextView: TextView = itemView.findViewById(R.id.artistNameTextView)
         private val albumTextView: TextView = itemView.findViewById(R.id.albumNameTextView)
         private val timestampTextView: TextView = itemView.findViewById(R.id.timestampTextView)
+        private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
         private val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
         private var currentTrack: TrackHistory? = null
         private val logTag = "HistoryAdapter"
@@ -40,6 +46,12 @@ class HistoryAdapter : ListAdapter<TrackHistory, HistoryAdapter.HistoryViewHolde
                         trackTitle = track.trackTitle,
                         logTag = logTag
                     )
+                }
+            }
+
+            deleteButton.setOnClickListener {
+                currentTrack?.let { track ->
+                    onDeleteClick(track.id)
                 }
             }
         }

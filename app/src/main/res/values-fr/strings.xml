@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">My Stream Logs</string>
+    <string name="notification_listener_service_label">Écouteur d\'historique de streaming</string>
+    <string name="history_empty">Aucun résultat trouvé ou historique vide.</string>
+    <string name="open_settings">Ouvrir les paramètres</string>
+    <string name="enable_permission">L\'application a besoin d\'accéder aux notifications pour fonctionner. Veuillez activer l\'accès dans les paramètres.</string>
+    <string name="notification_channel_name">Historique des pistes</string>
+    <string name="notification_channel_description">Notifications lorsqu\'une nouvelle piste est ajoutée à l\'historique</string>
+    <string name="notification_title">Musique enregistrée</string>
+    <string name="permission_post_notifications_title">Permission requise</string>
+    <string name="permission_post_notifications_message">Pour vous informer lorsqu\'une nouvelle musique est enregistrée, l\'application doit afficher des notifications.</string>
+    <string name="permission_post_notifications_button_grant">Autoriser</string>
+    <string name="permission_post_notifications_button_deny">Refuser</string>
+    <string name="error_opening_link">Impossible d\'ouvrir le lien. Tidal est-il installé ?</string>
+
+    <string name="most_streamed_title">Les plus écoutés</string>
+    <string name="most_streamed_empty">Pas encore de données de streaming. Écoutez de la musique !</string>
+    <string name="bottom_nav_history">Historique</string>
+    <string name="bottom_nav_most_streamed">Les plus écoutés</string>
+    <string name="search_hint">Rechercher dans l\'historique…</string>
+
+    <!-- Settings Page Strings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_delete_data_button">Supprimer toutes les données musicales</string>
+    <string name="settings_delete_confirmation_dialog_title">Confirmer la suppression</string>
+    <string name="settings_delete_confirmation_dialog_message">Êtes-vous sûr de vouloir supprimer toutes les données musicales ? Cette action ne peut pas être annulée.</string>
+    <string name="settings_delete_confirmation_dialog_confirm">Supprimer</string>
+    <string name="settings_delete_confirmation_dialog_cancel">Annuler</string>
+    <string name="bottom_nav_settings">Paramètres</string>
+    <string name="data_deleted_toast">Toutes les données musicales ont été supprimées.</string>
+    <string name="delete">Supprimer</string>
+
+    <!-- Permission Check Strings -->
+    <string name="settings_check_permissions_button">Vérifier les permissions</string>
+    <string name="permissions_check_title">Vérification des permissions</string>
+    <string name="permissions_check_message">L\'application a besoin des permissions suivantes pour fonctionner correctement :\n- Écouteur de notifications\n- Notifications\n- Optimisation de la batterie</string>
+
+    <!-- Language Settings -->
+    <string name="settings_language_label">Langue</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_french">Français</string>
+    <string name="settings_language_system">Défaut du système</string>
+
+    <!-- Filter Strings -->
+    <string name="filter_all_years">Toutes les années</string>
+    <string name="filter_all_months">Tous les mois</string>
+
+    <plurals name="stream_count_text">
+        <item quantity="one">%d écoute</item>
+        <item quantity="other">%d écoutes</item>
+    </plurals>
+</resources>
