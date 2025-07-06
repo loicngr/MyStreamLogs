@@ -18,6 +18,9 @@ class HistoryViewModel(private val trackHistoryDao: TrackHistoryDao) : ViewModel
     private val _selectedMonth = MutableStateFlow<String?>(null)
     val selectedMonth: StateFlow<String?> = _selectedMonth.asStateFlow()
 
+    private val _selectedPlatform = MutableStateFlow<String?>(null)
+    val selectedPlatform: StateFlow<String?> = _selectedPlatform.asStateFlow()
+
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
@@ -28,6 +31,10 @@ class HistoryViewModel(private val trackHistoryDao: TrackHistoryDao) : ViewModel
 
     fun setSelectedMonth(month: String?) {
         _selectedMonth.value = month
+    }
+
+    fun setSelectedPlatform(platform: String?) {
+        _selectedPlatform.value = platform
     }
 
     // Combine year and month into a format that the DAO expects: "YYYY-MM"
@@ -45,14 +52,45 @@ class HistoryViewModel(private val trackHistoryDao: TrackHistoryDao) : ViewModel
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val history: StateFlow<List<TrackHistory>> = combine(searchQuery, formattedYearMonth) { query, yearMonth ->
-        Pair(query, yearMonth)
-    }.flatMapLatest { (query, yearMonth) ->
+    val history: StateFlow<List<TrackHistory>> = combine(
+        searchQuery, 
+        formattedYearMonth,
+        selectedPlatform
+    ) { query, yearMonth, platform ->
+        Triple(query, yearMonth, platform)
+    }.flatMapLatest { (query, yearMonth, platform) ->
         when {
-            query.isBlank() && yearMonth.isNullOrBlank() -> trackHistoryDao.getAllHistory()
-            query.isBlank() -> trackHistoryDao.getHistoryByMonth(yearMonth!!)
-            yearMonth.isNullOrBlank() -> trackHistoryDao.searchHistory(query)
-            else -> trackHistoryDao.searchHistoryByMonth(query, yearMonth)
+            // No filters
+            query.isBlank() && yearMonth.isNullOrBlank() && platform.isNullOrBlank() -> 
+                trackHistoryDao.getAllHistory()
+
+            // Only platform filter
+            query.isBlank() && yearMonth.isNullOrBlank() && !platform.isNullOrBlank() -> 
+                trackHistoryDao.getHistoryByPlatform(platform)
+
+            // Only month filter
+            query.isBlank() && !yearMonth.isNullOrBlank() && platform.isNullOrBlank() -> 
+                trackHistoryDao.getHistoryByMonth(yearMonth)
+
+            // Month and platform filters
+            query.isBlank() && !yearMonth.isNullOrBlank() && !platform.isNullOrBlank() -> 
+                trackHistoryDao.getHistoryByMonthAndPlatform(yearMonth, platform)
+
+            // Only search query
+            !query.isBlank() && yearMonth.isNullOrBlank() && platform.isNullOrBlank() -> 
+                trackHistoryDao.searchHistory(query)
+
+            // Search query and platform filter
+            !query.isBlank() && yearMonth.isNullOrBlank() && !platform.isNullOrBlank() -> 
+                trackHistoryDao.searchHistoryByPlatform(query, platform)
+
+            // Search query and month filter
+            !query.isBlank() && !yearMonth.isNullOrBlank() && platform.isNullOrBlank() -> 
+                trackHistoryDao.searchHistoryByMonth(query, yearMonth)
+
+            // All filters (search query, month, and platform)
+            else -> 
+                trackHistoryDao.searchHistoryByMonthAndPlatform(query, yearMonth!!, platform!!)
         }
     }.stateIn(
         scope = viewModelScope,

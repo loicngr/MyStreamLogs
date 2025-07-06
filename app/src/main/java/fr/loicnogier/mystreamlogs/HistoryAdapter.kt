@@ -32,6 +32,7 @@ class HistoryAdapter(
         private val titleTextView: TextView = itemView.findViewById(R.id.trackTitleTextView)
         private val artistTextView: TextView = itemView.findViewById(R.id.artistNameTextView)
         private val albumTextView: TextView = itemView.findViewById(R.id.albumNameTextView)
+        private val platformTextView: TextView = itemView.findViewById(R.id.platformTextView)
         private val timestampTextView: TextView = itemView.findViewById(R.id.timestampTextView)
         private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
         private val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
@@ -41,9 +42,10 @@ class HistoryAdapter(
         init {
             itemView.setOnClickListener {
                 currentTrack?.let { track ->
-                    itemView.context.openTidalOrWebSearch(
+                    itemView.context.openMusicPlatformOrWebSearch(
                         artistName = track.artistName,
                         trackTitle = track.trackTitle,
+                        platform = track.platform,
                         logTag = logTag
                     )
                 }
@@ -68,6 +70,7 @@ class HistoryAdapter(
                 albumTextView.visibility = View.VISIBLE
             }
 
+            platformTextView.text = track.platform
             timestampTextView.text = dateFormatter.format(Date(track.timestamp))
 
             // --- La logique de chargement de l'image reste la même ---

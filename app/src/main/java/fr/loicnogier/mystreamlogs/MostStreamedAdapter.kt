@@ -33,6 +33,7 @@ class MostStreamedAdapter(
         private val rankTextView: TextView = itemView.findViewById(R.id.rankTextView)
         private val titleTextView: TextView = itemView.findViewById(R.id.trackTitleTextView)
         private val artistTextView: TextView = itemView.findViewById(R.id.artistNameTextView)
+        private val platformTextView: TextView = itemView.findViewById(R.id.platformTextView)
         private val countTextView: TextView = itemView.findViewById(R.id.streamCountTextView)
         private val deleteButton: View = itemView.findViewById(R.id.deleteButton)
         private var currentItem: TrackStreamCount? = null
@@ -41,9 +42,10 @@ class MostStreamedAdapter(
         init {
             itemView.setOnClickListener {
                 currentItem?.let { item ->
-                    itemView.context.openTidalOrWebSearch(
+                    itemView.context.openMusicPlatformOrWebSearch(
                         artistName = item.artistName,
                         trackTitle = item.trackTitle,
+                        platform = item.platform,
                         logTag = logTag
                     )
                 }
@@ -61,6 +63,7 @@ class MostStreamedAdapter(
             rankTextView.text = rank.toString()
             titleTextView.text = trackCount.trackTitle
             artistTextView.text = trackCount.artistName
+            platformTextView.text = trackCount.platform
             countTextView.text = itemView.context.resources.getQuantityString(
                 R.plurals.stream_count_text, trackCount.streamCount, trackCount.streamCount
             )

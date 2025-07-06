@@ -1,4 +1,4 @@
-# Tidal History Tracker / Suivi d'Historique Tidal
+# Music History Tracker / Suivi d'Historique musicale
 
 **(English below)**
 

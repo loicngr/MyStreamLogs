@@ -44,6 +44,7 @@
     <!-- Filter Strings -->
     <string name="filter_all_years">All years</string>
     <string name="filter_all_months">All months</string>
+    <string name="filter_all_platforms">All platforms</string>
 
     <plurals name="stream_count_text">
         <item quantity="one">%d stream</item>

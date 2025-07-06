@@ -21,6 +21,9 @@ data class TrackHistory(
     @ColumnInfo(name = "album_art_url")
     val albumArtUrl: String? = null,
 
+    @ColumnInfo(name = "platform")
+    val platform: String = "Tidal",
+
     @ColumnInfo(name = "timestamp")
     val timestamp: Long = System.currentTimeMillis()
 )

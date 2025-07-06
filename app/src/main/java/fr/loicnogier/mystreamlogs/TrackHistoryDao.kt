@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 data class TrackStreamCount(
     @ColumnInfo(name = "track_title") val trackTitle: String,
     @ColumnInfo(name = "artist_name") val artistName: String,
+    @ColumnInfo(name = "platform") val platform: String,
     @ColumnInfo(name = "stream_count") val streamCount: Int
     // You could add albumName here too if needed, but it requires grouping by it as well
     // @ColumnInfo(name = "album_name") val albumName: String?,
@@ -26,10 +27,25 @@ interface TrackHistoryDao {
 
     @Query("""
         SELECT * FROM track_history 
+        WHERE platform = :platform
+        ORDER BY timestamp DESC
+    """)
+    fun getHistoryByPlatform(platform: String): Flow<List<TrackHistory>>
+
+    @Query("""
+        SELECT * FROM track_history 
         WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
         ORDER BY timestamp DESC
     """)
     fun getHistoryByMonth(month: String): Flow<List<TrackHistory>>
+
+    @Query("""
+        SELECT * FROM track_history 
+        WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        AND platform = :platform
+        ORDER BY timestamp DESC
+    """)
+    fun getHistoryByMonthAndPlatform(month: String, platform: String): Flow<List<TrackHistory>>
 
     @Query("DELETE FROM track_history")
     suspend fun deleteAll()
@@ -54,27 +70,67 @@ interface TrackHistoryDao {
         WHERE (track_title LIKE '%' || :query || '%'
            OR artist_name LIKE '%' || :query || '%'
            OR album_name LIKE '%' || :query || '%')
+        AND platform = :platform
+        ORDER BY timestamp DESC
+    """)
+    fun searchHistoryByPlatform(query: String, platform: String): Flow<List<TrackHistory>>
+
+    @Query("""
+        SELECT * FROM track_history
+        WHERE (track_title LIKE '%' || :query || '%'
+           OR artist_name LIKE '%' || :query || '%'
+           OR album_name LIKE '%' || :query || '%')
         AND strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
         ORDER BY timestamp DESC
     """)
     fun searchHistoryByMonth(query: String, month: String): Flow<List<TrackHistory>>
 
-    // New query to get most streamed tracks
-    // Groups tracks by title and artist, counts them, and orders by count descending
     @Query("""
-        SELECT track_title, artist_name, COUNT(*) as stream_count
+        SELECT * FROM track_history
+        WHERE (track_title LIKE '%' || :query || '%'
+           OR artist_name LIKE '%' || :query || '%'
+           OR album_name LIKE '%' || :query || '%')
+        AND strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        AND platform = :platform
+        ORDER BY timestamp DESC
+    """)
+    fun searchHistoryByMonthAndPlatform(query: String, month: String, platform: String): Flow<List<TrackHistory>>
+
+    // New query to get most streamed tracks
+    // Groups tracks by title, artist, and platform, counts them, and orders by count descending
+    @Query("""
+        SELECT track_title, artist_name, platform, COUNT(*) as stream_count
         FROM track_history
-        GROUP BY track_title, artist_name
+        GROUP BY track_title, artist_name, platform
         ORDER BY stream_count DESC
     """)
     fun getMostStreamedTracks(): Flow<List<TrackStreamCount>> // Return Flow of the new data class
 
     @Query("""
-        SELECT track_title, artist_name, COUNT(*) as stream_count
+        SELECT track_title, artist_name, platform, COUNT(*) as stream_count
+        FROM track_history
+        WHERE platform = :platform
+        GROUP BY track_title, artist_name, platform
+        ORDER BY stream_count DESC
+    """)
+    fun getMostStreamedTracksByPlatform(platform: String): Flow<List<TrackStreamCount>>
+
+    @Query("""
+        SELECT track_title, artist_name, platform, COUNT(*) as stream_count
         FROM track_history
         WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
-        GROUP BY track_title, artist_name
+        GROUP BY track_title, artist_name, platform
         ORDER BY stream_count DESC
     """)
     fun getMostStreamedTracksByMonth(month: String): Flow<List<TrackStreamCount>>
+
+    @Query("""
+        SELECT track_title, artist_name, platform, COUNT(*) as stream_count
+        FROM track_history
+        WHERE strftime('%Y-%m', datetime(timestamp/1000, 'unixepoch')) = :month
+        AND platform = :platform
+        GROUP BY track_title, artist_name, platform
+        ORDER BY stream_count DESC
+    """)
+    fun getMostStreamedTracksByMonthAndPlatform(month: String, platform: String): Flow<List<TrackStreamCount>>
 }

@@ -15,12 +15,19 @@ class MostStreamedViewModel(private val trackHistoryDao: TrackHistoryDao) : View
     private val _selectedMonth = MutableStateFlow<String?>(null)
     val selectedMonth: StateFlow<String?> = _selectedMonth.asStateFlow()
 
+    private val _selectedPlatform = MutableStateFlow<String?>(null)
+    val selectedPlatform: StateFlow<String?> = _selectedPlatform.asStateFlow()
+
     fun setSelectedYear(year: String?) {
         _selectedYear.value = year
     }
 
     fun setSelectedMonth(month: String?) {
         _selectedMonth.value = month
+    }
+
+    fun setSelectedPlatform(platform: String?) {
+        _selectedPlatform.value = platform
     }
 
     // Combine year and month into a format that the DAO expects: "YYYY-MM"
@@ -38,19 +45,34 @@ class MostStreamedViewModel(private val trackHistoryDao: TrackHistoryDao) : View
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val mostStreamedTracks: StateFlow<List<TrackStreamCount>> = formattedYearMonth
-        .flatMapLatest { yearMonth ->
-            if (yearMonth.isNullOrBlank()) {
+    val mostStreamedTracks: StateFlow<List<TrackStreamCount>> = combine(
+        formattedYearMonth,
+        selectedPlatform
+    ) { yearMonth, platform ->
+        Pair(yearMonth, platform)
+    }.flatMapLatest { (yearMonth, platform) ->
+        when {
+            // No filters
+            yearMonth.isNullOrBlank() && platform.isNullOrBlank() ->
                 trackHistoryDao.getMostStreamedTracks()
-            } else {
+
+            // Only platform filter
+            yearMonth.isNullOrBlank() && !platform.isNullOrBlank() ->
+                trackHistoryDao.getMostStreamedTracksByPlatform(platform)
+
+            // Only month filter
+            !yearMonth.isNullOrBlank() && platform.isNullOrBlank() ->
                 trackHistoryDao.getMostStreamedTracksByMonth(yearMonth)
-            }
+
+            // Both month and platform filters
+            else ->
+                trackHistoryDao.getMostStreamedTracksByMonthAndPlatform(yearMonth!!, platform!!)
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun deleteTrack(trackTitle: String, artistName: String) {
         viewModelScope.launch {

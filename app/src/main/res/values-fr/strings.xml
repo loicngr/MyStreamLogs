@@ -44,6 +44,7 @@
     <!-- Filter Strings -->
     <string name="filter_all_years">Toutes années</string>
     <string name="filter_all_months">Tous mois</string>
+    <string name="filter_all_platforms">Toutes plateformes</string>
 
     <plurals name="stream_count_text">
         <item quantity="one">%d écoute</item>

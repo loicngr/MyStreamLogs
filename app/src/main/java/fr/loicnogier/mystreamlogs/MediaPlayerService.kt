@@ -34,7 +34,26 @@ class MediaPlayerService : NotificationListenerService() {
     private val trackHistoryDao by lazy { database.trackHistoryDao() }
     private var lastTrackTitle: String? = null
     private var lastArtistName: String? = null
+
+    // Package names for supported streaming platforms
     private val tidalPackageName = "com.aspiro.tidal"
+    private val spotifyPackageName = "com.spotify.music"
+    private val deezerPackageName = "deezer.android.app"
+    private val appleMusicPackageName = "com.apple.android.music"
+    private val youtubeMusicPackageName = "com.google.android.apps.youtube.music"
+
+    // Map of package names to platform display names
+    private val platformMap = mapOf(
+        tidalPackageName to "Tidal",
+        spotifyPackageName to "Spotify",
+        deezerPackageName to "Deezer",
+        appleMusicPackageName to "Apple Music",
+        youtubeMusicPackageName to "YouTube Music"
+    )
+
+    // List of supported package names
+    private val supportedPackages = platformMap.keys.toList()
+
     private val CHANNEL_ID = "TRACK_HISTORY_CHANNEL"
     private val NOTIFICATION_ID = 1
     private var mediaSessionManager: MediaSessionManager? = null
@@ -69,23 +88,26 @@ class MediaPlayerService : NotificationListenerService() {
             try {
                 val activeSessions = manager.getActiveSessions(ComponentName(this, MediaPlayerService::class.java))
 
-                // Register callbacks only for Tidal sessions
+                // Register callbacks for all supported streaming platforms
                 for (controller in activeSessions) {
-                    if (controller.packageName == tidalPackageName) {
+                    if (supportedPackages.contains(controller.packageName)) {
                         if (!activeControllers.containsKey(controller.packageName)) {
-                            Log.i("MediaPlayerService", "Registering callback for Tidal")
+                            val platformName = platformMap[controller.packageName] ?: "Unknown"
+                            Log.i("MediaPlayerService", "Registering callback for $platformName")
                             controller.registerCallback(sessionCallback)
                             activeControllers[controller.packageName] = controller
 
-                            // Process current metadata from Tidal
-                            processMetadata(controller.metadata)
+                            // Process current metadata from the platform
+                            processMetadata(controller.metadata, controller.packageName)
                         }
                     } else {
-                        Log.d("MediaPlayerService", "Ignoring non-Tidal session: ${controller.packageName}")
+                        Log.d("MediaPlayerService", "Ignoring unsupported session: ${controller.packageName}")
                     }
                 }
 
-                Log.d("MediaPlayerService", "Active sessions updated. Tidal controller registered: ${activeControllers.containsKey(tidalPackageName)}")
+                // Log registered platforms
+                val registeredPlatforms = activeControllers.keys.mapNotNull { platformMap[it] }
+                Log.d("MediaPlayerService", "Active sessions updated. Registered platforms: $registeredPlatforms")
             } catch (e: SecurityException) {
                 Log.e("MediaPlayerService", "Security exception getting active sessions", e)
             } catch (e: Exception) {
@@ -101,17 +123,18 @@ class MediaPlayerService : NotificationListenerService() {
             // Find which controller (app) this metadata is coming from
             val controller = activeControllers.values.find { it.metadata == metadata }
 
-            // Only process metadata from Tidal
-            if (controller?.packageName == tidalPackageName) {
-                Log.d("MediaPlayerService", "Processing metadata from Tidal")
-                processMetadata(metadata)
+            // Process metadata from any supported platform
+            if (controller != null && supportedPackages.contains(controller.packageName)) {
+                val platformName = platformMap[controller.packageName] ?: "Unknown"
+                Log.d("MediaPlayerService", "Processing metadata from $platformName")
+                processMetadata(metadata, controller.packageName)
             } else {
-                Log.d("MediaPlayerService", "Ignoring metadata from non-Tidal app: ${controller?.packageName}")
+                Log.d("MediaPlayerService", "Ignoring metadata from unsupported app: ${controller?.packageName}")
             }
         }
     }
 
-    private fun processMetadata(metadata: MediaMetadata?) {
+    private fun processMetadata(metadata: MediaMetadata?, packageName: String = tidalPackageName) {
         metadata ?: return
 
         val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)?.trim()
@@ -119,12 +142,15 @@ class MediaPlayerService : NotificationListenerService() {
         val album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)?.trim()
         val albumArtUri = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
 
-        Log.d("MediaPlayerService", "Metadata received: Title='$title', Artist='$artist', Album='$album'")
+        // Get platform name from package name
+        val platform = platformMap[packageName] ?: "Unknown"
+
+        Log.d("MediaPlayerService", "Metadata received from $platform: Title='$title', Artist='$artist', Album='$album'")
 
         if (!title.isNullOrBlank() && !artist.isNullOrBlank() &&
             (title != lastTrackTitle || artist != lastArtistName)) {
 
-            Log.i("MediaPlayerService", "New track detected: '$title' by '$artist'")
+            Log.i("MediaPlayerService", "New track detected from $platform: '$title' by '$artist'")
 
             lastTrackTitle = title
             lastArtistName = artist
@@ -133,14 +159,15 @@ class MediaPlayerService : NotificationListenerService() {
                 trackTitle = title,
                 artistName = artist,
                 albumName = album,
-                albumArtUrl = albumArtUri
+                albumArtUrl = albumArtUri,
+                platform = platform
             )
 
             serviceScope.launch {
                 try {
                     trackHistoryDao.insert(trackHistory)
                     Log.i("MediaPlayerService", "Track saved in the database.")
-                    showTrackSavedNotification(title, artist)
+                    showTrackSavedNotification(title, artist, platform)
                 } catch (e: Exception) {
                     Log.e("MediaPlayerService", "Error during insertion in the DB", e)
                 }
@@ -165,7 +192,7 @@ class MediaPlayerService : NotificationListenerService() {
         }
     }
 
-    private fun showTrackSavedNotification(title: String, artist: String) {
+    private fun showTrackSavedNotification(title: String, artist: String, platform: String = "Tidal") {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 Log.w("MediaPlayerService", "Permission POST_NOTIFICATIONS not granted.")
@@ -187,14 +214,14 @@ class MediaPlayerService : NotificationListenerService() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.notification_title))
-            .setContentText("$title - $artist")
+            .setContentText("$title - $artist ($platform)")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(false)
             .setContentIntent(pendingIntent)
 
         with(NotificationManagerCompat.from(this)) {
             notify(NOTIFICATION_ID, builder.build())
-            Log.d("MediaPlayerService", "Notification displayed for '$title' with PendingIntent.")
+            Log.d("MediaPlayerService", "Notification displayed for '$title' from $platform with PendingIntent.")
         }
     }
 

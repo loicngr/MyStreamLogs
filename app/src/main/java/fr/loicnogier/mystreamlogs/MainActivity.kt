@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var yearFilterAutoComplete: AutoCompleteTextView
     private lateinit var monthFilterLayout: TextInputLayout
     private lateinit var monthFilterAutoComplete: AutoCompleteTextView
+    private lateinit var platformFilterLayout: TextInputLayout
+    private lateinit var platformFilterAutoComplete: AutoCompleteTextView
 
     private lateinit var historyContentGroup: List<View>
 
@@ -93,9 +95,11 @@ class MainActivity : AppCompatActivity() {
         yearFilterAutoComplete = findViewById(R.id.yearFilterAutoComplete)
         monthFilterLayout = findViewById(R.id.monthFilterLayout)
         monthFilterAutoComplete = findViewById(R.id.monthFilterAutoComplete)
+        platformFilterLayout = findViewById(R.id.platformFilterLayout)
+        platformFilterAutoComplete = findViewById(R.id.platformFilterAutoComplete)
         val mainContentLayout = findViewById<View>(R.id.main)
 
-        historyContentGroup = listOf(recyclerView, searchView, emptyHistoryText, yearFilterLayout, monthFilterLayout)
+        historyContentGroup = listOf(recyclerView, searchView, emptyHistoryText, yearFilterLayout, monthFilterLayout, platformFilterLayout)
 
         ViewCompat.setOnApplyWindowInsetsListener(mainContentLayout) { view, insets ->
             val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -172,6 +176,36 @@ class MainActivity : AppCompatActivity() {
     private fun setupFilters() {
         setupYearFilter()
         setupMonthFilter()
+        setupPlatformFilter()
+    }
+
+    private fun setupPlatformFilter() {
+        // List of available platforms
+        val platforms = listOf("Tidal", "Spotify", "Apple Music", "YouTube Music")
+
+        // Add an "All" option at the beginning
+        val allPlatformsOption = getString(R.string.filter_all_platforms)
+        val adapter = ArrayAdapter(
+            this, 
+            android.R.layout.simple_dropdown_item_1line, 
+            listOf(allPlatformsOption) + platforms
+        )
+        platformFilterAutoComplete.setAdapter(adapter)
+
+        // Set the default selection to "All"
+        platformFilterAutoComplete.setText(allPlatformsOption, false)
+
+        // Handle selection
+        platformFilterAutoComplete.setOnItemClickListener { _, _, position, _ ->
+            if (position == 0) {
+                // "All" option selected
+                historyViewModel.setSelectedPlatform(null)
+            } else {
+                // A specific platform selected
+                val selectedPlatform = platforms[position - 1] // -1 because of the "All" option
+                historyViewModel.setSelectedPlatform(selectedPlatform)
+            }
+        }
     }
 
     private fun setupYearFilter() {
