@@ -68,21 +68,24 @@ class MediaPlayerService : NotificationListenerService() {
         mediaSessionManager?.let { manager ->
             try {
                 val activeSessions = manager.getActiveSessions(ComponentName(this, MediaPlayerService::class.java))
-                
-                // Register callbacks for new sessions
+
+                // Register callbacks only for Tidal sessions
                 for (controller in activeSessions) {
-                    if (!activeControllers.containsKey(controller.packageName)) {
-                        controller.registerCallback(sessionCallback)
-                        activeControllers[controller.packageName] = controller
-                        
-                        // Check if this is Tidal and process current metadata
-                        if (controller.packageName == tidalPackageName) {
+                    if (controller.packageName == tidalPackageName) {
+                        if (!activeControllers.containsKey(controller.packageName)) {
+                            Log.i("MediaPlayerService", "Registering callback for Tidal")
+                            controller.registerCallback(sessionCallback)
+                            activeControllers[controller.packageName] = controller
+
+                            // Process current metadata from Tidal
                             processMetadata(controller.metadata)
                         }
+                    } else {
+                        Log.d("MediaPlayerService", "Ignoring non-Tidal session: ${controller.packageName}")
                     }
                 }
-                
-                Log.d("MediaPlayerService", "Active sessions updated. Count: ${activeControllers.size}")
+
+                Log.d("MediaPlayerService", "Active sessions updated. Tidal controller registered: ${activeControllers.containsKey(tidalPackageName)}")
             } catch (e: SecurityException) {
                 Log.e("MediaPlayerService", "Security exception getting active sessions", e)
             } catch (e: Exception) {
@@ -94,35 +97,45 @@ class MediaPlayerService : NotificationListenerService() {
     private inner class SessionCallback : MediaController.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             super.onMetadataChanged(metadata)
-            processMetadata(metadata)
+
+            // Find which controller (app) this metadata is coming from
+            val controller = activeControllers.values.find { it.metadata == metadata }
+
+            // Only process metadata from Tidal
+            if (controller?.packageName == tidalPackageName) {
+                Log.d("MediaPlayerService", "Processing metadata from Tidal")
+                processMetadata(metadata)
+            } else {
+                Log.d("MediaPlayerService", "Ignoring metadata from non-Tidal app: ${controller?.packageName}")
+            }
         }
     }
 
     private fun processMetadata(metadata: MediaMetadata?) {
         metadata ?: return
-        
+
         val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)?.trim()
         val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)?.trim()
         val album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)?.trim()
         val albumArtUri = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
-        
+
         Log.d("MediaPlayerService", "Metadata received: Title='$title', Artist='$artist', Album='$album'")
-        
+
         if (!title.isNullOrBlank() && !artist.isNullOrBlank() &&
             (title != lastTrackTitle || artist != lastArtistName)) {
-            
+
             Log.i("MediaPlayerService", "New track detected: '$title' by '$artist'")
-            
+
             lastTrackTitle = title
             lastArtistName = artist
-            
+
             val trackHistory = TrackHistory(
                 trackTitle = title,
                 artistName = artist,
                 albumName = album,
                 albumArtUrl = albumArtUri
             )
-            
+
             serviceScope.launch {
                 try {
                     trackHistoryDao.insert(trackHistory)

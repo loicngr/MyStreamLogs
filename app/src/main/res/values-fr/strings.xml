@@ -42,8 +42,8 @@
     <string name="settings_language_system">Défaut du système</string>
 
     <!-- Filter Strings -->
-    <string name="filter_all_years">Toutes les années</string>
-    <string name="filter_all_months">Tous les mois</string>
+    <string name="filter_all_years">Toutes années</string>
+    <string name="filter_all_months">Tous mois</string>
 
     <plurals name="stream_count_text">
         <item quantity="one">%d écoute</item>
